@@ -9,8 +9,17 @@
 import SwiftUI
 
 struct ContentView: View {
+    @EnvironmentObject private var bleManager: BleManager
     var body: some View {
-        Text("Hello, World!")
+        VStack{
+            Text(bleManager.iBeacon1Rssi.stringValue)
+            Button(action: {
+                print("Click Scan")
+                self.bleManager.startScan()
+            }){
+                Text("Scan")
+            }
+        }
     }
 }
 
