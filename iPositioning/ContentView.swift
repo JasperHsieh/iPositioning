@@ -12,7 +12,15 @@ struct ContentView: View {
     @EnvironmentObject private var bleManager: BleManager
     var body: some View {
         VStack{
-            Text(bleManager.iBeacon1Rssi.stringValue)
+            Text("Beacon 1")
+            Text("RSSI: \(bleManager.iBeaconRssi1.stringValue)")
+            Text("Distance: \(NSDecimalNumber(decimal: bleManager.iBeaconDist1).stringValue)")
+            Text("Beacon 2")
+            Text("RSSI: \(bleManager.iBeaconRssi2.stringValue)")
+            Text("Distance: \(NSDecimalNumber(decimal: bleManager.iBeaconDist2).stringValue)")
+            Text("Beacon 3")
+            Text("RSSI: \(bleManager.iBeaconRssi3.stringValue)")
+            Text("Distance: \(NSDecimalNumber(decimal: bleManager.iBeaconDist3).stringValue)")
             Button(action: {
                 print("Click Scan")
                 self.bleManager.startScan()
