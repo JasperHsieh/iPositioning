@@ -43,17 +43,17 @@ class BleManager: NSObject, CBCentralManagerDelegate, ObservableObject {
             print("\nName   : \(peripheral.name ?? "(No name)")")
             print("RSSI   : \(RSSI)")
             iBeaconRssi1 = RSSI
-            iBeaconDist1 = getDistance(rssi: RSSI, txPower: 0)
+            iBeaconDist1 = getDistance(rssi: RSSI, txPower: -64)
         } else if peripheral.name == beacon2 {
             print("\nName   : \(peripheral.name ?? "(No name)")")
             print("RSSI   : \(RSSI)")
             iBeaconRssi2 = RSSI
-            iBeaconDist2 = getDistance(rssi: RSSI, txPower: 0)
+            iBeaconDist2 = getDistance(rssi: RSSI, txPower: -64)
         } else if peripheral.name == beacon3 || peripheral.name == "J_iBcn"{
             print("\nName   : \(peripheral.name ?? "(No name)")")
             print("RSSI   : \(RSSI)")
             iBeaconRssi3 = RSSI
-            iBeaconDist3 = getDistance(rssi: RSSI, txPower: 0)
+            iBeaconDist3 = getDistance(rssi: RSSI, txPower: -64)
 //            for ad in advertisementData {
 //                print("AD Data: \(ad)")
 //            }
@@ -71,7 +71,10 @@ class BleManager: NSObject, CBCentralManagerDelegate, ObservableObject {
     }
 
     func getDistance(rssi: NSNumber, txPower: Int)-> Decimal{
-        let distance = pow(10, ((txPower-Int(truncating: rssi)) / 10*2))
-        return distance
+        let tmp1 = -64.0 - Double(truncating: rssi)
+        let tmp2 = tmp1 / (10*2)
+        //print("\(tmp1) \(tmp2)")
+        let distance = pow(10, tmp2)
+        return Decimal(distance)
     }
 }
