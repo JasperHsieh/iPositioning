@@ -13,8 +13,6 @@ struct ContentView: View {
     @Environment(\.colorScheme) var colorScheme
     var roomWidth: CGFloat = 300.0
     var roomLength: CGFloat = 500.0
-    @State var x: CGFloat = 100.0
-    @State var y: CGFloat = 100.0
 
     var body: some View {
         VStack {
@@ -26,7 +24,7 @@ struct ContentView: View {
                 Circle()
                     .fill(Color.green)
                     .frame(width: 20.0, height: 20.0)
-                    .position(x: x, y: y)
+                    .position(x: bleManager.x, y: bleManager.y)
                 HStack{
                     Image("Beacon")
                         .resizable()
@@ -47,8 +45,7 @@ struct ContentView: View {
             Button(action: {
                 print("Click Scan")
                 self.bleManager.startScan()
-                self.x = self.x + 10
-                self.y = self.y + 10
+
             }){
                 Text("Scan")
             }.padding()

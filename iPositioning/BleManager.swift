@@ -8,6 +8,7 @@
 
 import Foundation
 import CoreBluetooth
+import SwiftUI
 
 class BleManager: NSObject, CBCentralManagerDelegate, ObservableObject {
     private var centralManager : CBCentralManager!
@@ -19,13 +20,21 @@ class BleManager: NSObject, CBCentralManagerDelegate, ObservableObject {
     @Published var iBeaconDist2: Decimal = 0
     @Published var iBeaconDist3: Decimal = 0
 
+    @Published var x: CGFloat = 100.0
+    @Published var y: CGFloat = 100.0
+
     let beacon1 = "myBeacon1"
     let beacon2 = "myBeacon2"
     let beacon3 = "myBeacon3"
-    
+    let target = 1
+
+    var beaconFound = 0
+
     func startScan(){
         print("startScan")
         centralManager = CBCentralManager(delegate: self, queue: nil, options: nil)
+        beaconFound = 0
+
     }
     
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
@@ -40,36 +49,38 @@ class BleManager: NSObject, CBCentralManagerDelegate, ObservableObject {
     }
     
     public func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
-        if peripheral.name == beacon1 {
+        if isOurBeacon(device: peripheral) {
             print("\nName   : \(peripheral.name ?? "(No name)")")
             print("RSSI   : \(RSSI)")
-            iBeaconRssi1 = RSSI
-            iBeaconDist1 = getDistance(rssi: RSSI, txPower: -64)
-        } else if peripheral.name == beacon2 {
-            print("\nName   : \(peripheral.name ?? "(No name)")")
-            print("RSSI   : \(RSSI)")
-            iBeaconRssi2 = RSSI
-            iBeaconDist2 = getDistance(rssi: RSSI, txPower: -64)
-        } else if peripheral.name == beacon3 || peripheral.name == "J_iBcn"{
-            print("\nName   : \(peripheral.name ?? "(No name)")")
-            print("RSSI   : \(RSSI)")
-            iBeaconRssi3 = RSSI
-            iBeaconDist3 = getDistance(rssi: RSSI, txPower: -64)
-            print("Distance: \(iBeaconDist3)")
-//            for ad in advertisementData {
-//                print("AD Data: \(ad)")
-//            }
+            beaconFound += 1
+            if peripheral.name == beacon1 {
+                iBeaconRssi1 = RSSI
+                iBeaconDist1 = getDistance(rssi: RSSI, txPower: -64)
+            } else if peripheral.name == beacon2 {
+                iBeaconRssi2 = RSSI
+                iBeaconDist2 = getDistance(rssi: RSSI, txPower: -64)
+            } else if peripheral.name == beacon3 || peripheral.name == "J_iBcn"{
+                iBeaconRssi3 = RSSI
+                iBeaconDist3 = getDistance(rssi: RSSI, txPower: -64)
+                print("Distance: \(iBeaconDist3)")
+    //            for ad in advertisementData {
+    //                print("AD Data: \(ad)")
+    //            }
+            }
+            if beaconFound == target {
+                // Update location
+                print("Found all beacons")
+                self.x = self.x + 10
+                self.y = self.y + 10
+            }
         }
-        
-//        if peripheral.name == "pBeacon_n" || peripheral.name == "J_iBcn" {
-//            print("\nName   : \(peripheral.name ?? "(No name)")")
-//            print("RSSI   : \(RSSI)")
-//            iBeaconRssi1 = RSSI
-//            iBeaconDist1 = getDistance(rssi: RSSI, txPower: 0)
-//            for ad in advertisementData {
-//                print("AD Data: \(ad)")
-//            }
-//        }
+    }
+
+    func isOurBeacon(device: CBPeripheral) -> Bool {
+        if device.name == beacon1 || device.name == beacon2 || device.name == beacon3{
+            return true
+        }
+        return false
     }
 
     func getDistance(rssi: NSNumber, txPower: Int)-> Decimal{
