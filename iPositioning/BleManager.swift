@@ -12,10 +12,11 @@ import CoreBluetooth
 class BleManager: NSObject, CBCentralManagerDelegate, ObservableObject {
     private var centralManager : CBCentralManager!
     @Published var iBeaconRssi1: NSNumber = 0
-    @Published var iBeaconDist1: Decimal = 0
     @Published var iBeaconRssi2: NSNumber = 0
-    @Published var iBeaconDist2: Decimal = 0
     @Published var iBeaconRssi3: NSNumber = 0
+
+    @Published var iBeaconDist1: Decimal = 0
+    @Published var iBeaconDist2: Decimal = 0
     @Published var iBeaconDist3: Decimal = 0
 
     let beacon1 = "myBeacon1"
@@ -54,6 +55,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, ObservableObject {
             print("RSSI   : \(RSSI)")
             iBeaconRssi3 = RSSI
             iBeaconDist3 = getDistance(rssi: RSSI, txPower: -64)
+            print("Distance: \(iBeaconDist3)")
 //            for ad in advertisementData {
 //                print("AD Data: \(ad)")
 //            }
@@ -74,7 +76,7 @@ class BleManager: NSObject, CBCentralManagerDelegate, ObservableObject {
         let tmp1 = -64.0 - Double(truncating: rssi)
         let tmp2 = tmp1 / (10*2)
         //print("\(tmp1) \(tmp2)")
-        let distance = pow(10, tmp2)
+        let distance = Double(round(pow(10, tmp2)*100)/100)
         return Decimal(distance)
     }
 }
