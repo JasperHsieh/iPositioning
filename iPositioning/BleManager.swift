@@ -90,4 +90,17 @@ class BleManager: NSObject, CBCentralManagerDelegate, ObservableObject {
         let distance = Double(round(pow(10, tmp2)*100)/100)
         return Decimal(distance)
     }
+    
+    func getCoordinates(width: Double, length: Double, a: Double, b: Double, c: Double) -> [Double] {
+        let p1 = (length + a + c) / 2.0
+        let s1 = sqrt(p1 * (p1 - a) * (p1 - c) * (p1 - length))
+        let h1 = 2.0 * s1 / length
+        let y = sqrt(c * c -  h1 * h1)
+        
+        let p2 = (width + b + c) / 2.0
+        let s2 = sqrt(p2 * (p2 - b) * (p2 - c) * (p2 - width))
+        let h2 = 2.0 * s2 / width
+        let x = sqrt(c * c - h2 * h2)
+        return [x, y]
+    }
 }
