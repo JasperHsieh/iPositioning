@@ -39,9 +39,9 @@ struct ContentView: View {
             .background(colorScheme == .dark ? Color.white : Color.black)
             .coordinateSpace(name: "Custom")
 
-            Text("Beacon 1 : (\(bleManager.iBeaconRssi1.stringValue), \(bleManager.iBeaconDist1) m")
-            Text("Beacon 2 : (\(bleManager.iBeaconRssi2.stringValue), \(bleManager.iBeaconDist2) m")
-            Text("Beacon 3 : (\(bleManager.iBeaconRssi3.stringValue), \(bleManager.iBeaconDist3) m")
+            Text("Beacon 1 : (\(bleManager.iBeaconRssi1.stringValue), \(bleManager.iBeaconDist1) m)")
+            Text("Beacon 2 : (\(bleManager.iBeaconRssi2.stringValue), \(bleManager.iBeaconDist2) m)")
+            Text("Beacon 3 : (\(bleManager.iBeaconRssi3.stringValue), \(bleManager.iBeaconDist3) m)")
             Button(action: {
                 print("Click Scan")
                 self.bleManager.startScan()

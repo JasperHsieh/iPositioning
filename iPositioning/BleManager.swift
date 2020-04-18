@@ -11,7 +11,7 @@ import CoreBluetooth
 import SwiftUI
 
 class BleManager: NSObject, CBCentralManagerDelegate, ObservableObject {
-    private var centralManager : CBCentralManager!
+    var centralManager : CBCentralManager!
     @Published var iBeaconRssi1: NSNumber = 0
     @Published var iBeaconRssi2: NSNumber = 0
     @Published var iBeaconRssi3: NSNumber = 0
@@ -30,22 +30,92 @@ class BleManager: NSObject, CBCentralManagerDelegate, ObservableObject {
     let beacon2 = "myBeacon2"
     let beacon3 = "myBeacon3"
     let target = 3
+    let scan = 10
 
+    var timerCount = 0
     var beaconFound = 0
+
+    var distances1: [Double] = []
+    var distances2: [Double] = []
+    var distances3: [Double] = []
+
+    public override init() {
+        super.init()
+        centralManager = CBCentralManager(delegate: self, queue: nil, options: nil)
+    }
 
     func startScan(){
         print("startScan")
-        centralManager = CBCentralManager(delegate: self, queue: nil, options: nil)
+        //centralManager.scanForPeripherals(withServices: nil, options: nil)
         beaconFound = 0
+        reset()
+        Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { timer in
+            print("timerCount \(self.timerCount)")
+            self.scanInBackground()
+            self.timerCount += 1
+            if self.timerCount == self.scan {
+                timer.invalidate()
+                //usleep(1000000)
+                self.updateDistance()
+            }
+        }
+//        for i in 0..<3 {
+//            print(i)
+//            scanInBackground()
+//            //usleep(3000000)
+//        }
+    }
 
+    func reset() {
+        timerCount = 0
+        iBeaconRssi1 = 0
+        iBeaconRssi2 = 0
+        iBeaconRssi3 = 0
+        iBeaconDist1 = 0
+        iBeaconDist2 = 0
+        iBeaconDist3 = 0
+        distances1 = []
+        distances2 = []
+        distances3 = []
+    }
+
+    func updateDistance() {
+        print("updateDistance")
+        iBeaconDist1 = calculateMedian(array: distances1)
+        iBeaconDist2 = calculateMedian(array: distances2)
+        iBeaconDist3 = calculateMedian(array: distances3)
+        print("distances1 \(distances1), median: \(iBeaconDist1)")
+        print("distances2 \(distances2), median: \(iBeaconDist2)")
+        print("distances3 \(distances3), median: \(iBeaconDist3)")
+    }
+
+    func scanInBackground() {
+        DispatchQueue.global(qos: .userInitiated).async {
+            self.centralManager.scanForPeripherals(withServices: nil, options: nil)
+            DispatchQueue.main.async {
+
+            }
+        }
+    }
+
+    func calculateMedian(array: [Double]) -> Double {
+        if array.isEmpty {
+            print("Empty array")
+            return 0
+        }
+        let sorted = array.sorted()
+        if sorted.count % 2 == 0 {
+            return Double((sorted[(sorted.count / 2)] + sorted[(sorted.count / 2) - 1])) / 2
+        } else {
+            return Double(sorted[(sorted.count - 1) / 2])
+        }
     }
     
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
         print("centralManagerDidUpdateState")
         if central.state == .poweredOn {
             print("Bluetooth is On")
-            //centralManager = CBCentralManager(delegate: self, queue: nil, options: nil)
-            centralManager.scanForPeripherals(withServices: nil, options: nil)
+            //centralManager.scanForPeripherals(withServices: nil, options: nil)
         } else {
             print("Bluetooth is not active")
         }
@@ -61,21 +131,25 @@ class BleManager: NSObject, CBCentralManagerDelegate, ObservableObject {
 
             if peripheral.name == beacon1 {
                 iBeaconRssi1 = RSSI
-                iBeaconDist1 = dist
+                //iBeaconDist1 = dist
+                distances1.append(dist)
+
             } else if peripheral.name == beacon2 {
                 iBeaconRssi2 = RSSI
-                iBeaconDist2 = dist
+                //iBeaconDist2 = dist
+                distances2.append(dist)
             } else if peripheral.name == beacon3 || peripheral.name == "J_iBcn"{
                 iBeaconRssi3 = RSSI
-                iBeaconDist3 = dist
+                //iBeaconDist3 = dist
+                distances3.append(dist)
             }
-            if beaconFound == target {
-                // Update location
-                print("Found all beacons")
-                var coords = getCoordinates(width: roomWidth, length: roomLength, d2: iBeaconDist2, d3: iBeaconDist3, d1: iBeaconDist1)
-                print("(\(coords[0]), \(coords[1]))")
-
-            }
+//            if beaconFound == target {
+//                // Update location
+//                print("Found all beacons")
+//                var coords = getCoordinates(width: roomWidth, length: roomLength, d2: iBeaconDist2, d3: iBeaconDist3, d1: iBeaconDist1)
+//                print("(\(coords[0]), \(coords[1]))")
+//
+//            }
         }
     }
 
