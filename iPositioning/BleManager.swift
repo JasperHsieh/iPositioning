@@ -113,6 +113,12 @@ class BleManager: NSObject, CBCentralManagerDelegate, ObservableObject {
         if y > length {
             y = length
         }
+        if x.isNaN {
+            x = 0.0
+        }
+        if y.isNaN {
+            y = 0.0
+        }
     }
 
     func convertToSceenUnit(meter: Double) -> CGFloat{
