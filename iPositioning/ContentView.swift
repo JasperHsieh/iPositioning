@@ -11,8 +11,8 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject private var bleManager: BleManager
     @Environment(\.colorScheme) var colorScheme
-    var roomWidth: CGFloat = 300.0
-    var roomLength: CGFloat = 500.0
+    //var roomWidth: CGFloat = 300.0
+    //var roomLength: CGFloat = 500.0
 
     var body: some View {
         VStack {
@@ -24,7 +24,7 @@ struct ContentView: View {
                 Circle()
                     .fill(Color.green)
                     .frame(width: 20.0, height: 20.0)
-                    .position(x: bleManager.x, y: bleManager.y)
+                    .position(x: bleManager.x, y: bleManager.y - 25.0)
                 HStack{
                     Image("b1")
                         .resizable()
@@ -35,7 +35,7 @@ struct ContentView: View {
                         .frame(width: 50.0, height: 50.0)
                 }
             }
-            .frame(width: roomWidth, height: roomLength)
+            .frame(width: bleManager.width, height: bleManager.length)
             .background(colorScheme == .dark ? Color.white : Color.black)
             .coordinateSpace(name: "Custom")
 

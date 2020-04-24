@@ -20,11 +20,13 @@ class BleManager: NSObject, CBCentralManagerDelegate, ObservableObject {
     @Published var iBeaconDist2: Double = 0
     @Published var iBeaconDist3: Double = 0
 
-    @Published var x: CGFloat = 100.0
-    @Published var y: CGFloat = 100.0
+    @Published var x: CGFloat = 0
+    @Published var y: CGFloat = 0
 
-    let roomWidth: Double = 3.8
-    let roomLength: Double = 6.4
+    let roomWidth: Double = 3.8 // m
+    let roomLength: Double = 6.4 // m
+    var width: CGFloat = 300  // fixed
+    var length: CGFloat = 500
 
     let beacon1 = "myBeacon1"
     let beacon2 = "myBeacon2"
@@ -39,9 +41,14 @@ class BleManager: NSObject, CBCentralManagerDelegate, ObservableObject {
     var distances2: [Double] = []
     var distances3: [Double] = []
 
+    let offset1 = 1.0
+    let offset2 = 1.0
+    let offset3 = 1.0
+
     public override init() {
         super.init()
         centralManager = CBCentralManager(delegate: self, queue: nil, options: nil)
+        length = CGFloat(Double(width) * (roomLength / roomWidth))
     }
 
     func startScan(){
@@ -59,11 +66,6 @@ class BleManager: NSObject, CBCentralManagerDelegate, ObservableObject {
                 self.updateDistance()
             }
         }
-//        for i in 0..<3 {
-//            print(i)
-//            scanInBackground()
-//            //usleep(3000000)
-//        }
     }
 
     func reset() {
@@ -81,12 +83,41 @@ class BleManager: NSObject, CBCentralManagerDelegate, ObservableObject {
 
     func updateDistance() {
         print("updateDistance")
-        iBeaconDist1 = calculateMedian(array: distances1)
-        iBeaconDist2 = calculateMedian(array: distances2)
-        iBeaconDist3 = calculateMedian(array: distances3)
-        print("distances1 \(distances1), median: \(iBeaconDist1)")
-        print("distances2 \(distances2), median: \(iBeaconDist2)")
-        print("distances3 \(distances3), median: \(iBeaconDist3)")
+        iBeaconDist1 = calculateMedian(array: distances1) + offset1
+        iBeaconDist2 = calculateMedian(array: distances2) + offset2
+        iBeaconDist3 = calculateMedian(array: distances3) + offset3
+        //print("distances1 \(distances1), median: \(iBeaconDist1)")
+        //print("distances2 \(distances2), median: \(iBeaconDist2)")
+        //print("distances3 \(distances3), median: \(iBeaconDist3)")
+        print("(d1, d2, d3) = (\(iBeaconDist1), \(iBeaconDist2), \(iBeaconDist3))")
+        updatePosition()
+    }
+
+    func updatePosition() {
+        if iBeaconDist1 + iBeaconDist2 < roomLength {
+            print("d1 or d2 not valid (d1, d2, l) = (\(iBeaconDist1), \(iBeaconDist2), \(roomLength))")
+            return
+        }
+        if iBeaconDist1 + iBeaconDist3 < roomWidth {
+            print("d1 or d3 not valid (d1, d3, l) = (\(iBeaconDist1), \(iBeaconDist3), \(roomWidth))")
+            return
+        }
+        let coords = getCoordinates(width: roomWidth, length: roomLength, d1: iBeaconDist1, d2: iBeaconDist2, d3: iBeaconDist3)
+        print("coords \(coords)")
+        x = convertToSceenUnit(meter: coords[0])
+        y = convertToSceenUnit(meter: coords[1])
+        print("(x,y)=(\(x),\(y)")
+        if x > width {
+            x = width
+        }
+        if y > length {
+            y = length
+        }
+    }
+
+    func convertToSceenUnit(meter: Double) -> CGFloat{
+        let len = meter * (Double(width) / roomWidth)
+        return CGFloat(len)
     }
 
     func scanInBackground() {
@@ -169,20 +200,34 @@ class BleManager: NSObject, CBCentralManagerDelegate, ObservableObject {
         return distance
     }
     
-    func getCoordinates(width: Double, length: Double, d2 a: Double, d3 b: Double, d1 c: Double) -> [Double] {
-        print(width, length, a, b, c)
+//    func getCoordinates(width: Double, length: Double, d2 a: Double, d3 b: Double, d1 c: Double) -> [Double] {
+//        print(width, length, a, b, c)
+//
+//        let p1 = (length + a + c) / 2.0
+//        let s1 = sqrt(p1 * (p1 - a) * (p1 - c) * (p1 - length))
+//        let h1 = 2.0 * s1 / length
+//        let y = sqrt(c * c -  h1 * h1)
+//        print("p1:\(p1) s1:\(s1) h1:\(h1) y:\(y)")
+//
+//        let p2 = (width + b + c) / 2.0
+//        let s2 = sqrt(p2 * (p2 - b) * (p2 - c) * (p2 - width))
+//        let h2 = 2.0 * s2 / width
+//        let x = sqrt(c * c - h2 * h2)
+//        print("p2:\(p2) s2:\(s2) h2:\(h2) x:\(x)")
+//        return [x, y]
+//    }
 
-        let p1 = (length + a + c) / 2.0
-        let s1 = sqrt(p1 * (p1 - a) * (p1 - c) * (p1 - length))
-        let h1 = 2.0 * s1 / length
-        let y = sqrt(c * c -  h1 * h1)
-        print("p1:\(p1) s1:\(s1) h1:\(h1) y:\(y)")
+    func getCoordinates(width: Double, length: Double, d1: Double, d2: Double, d3: Double) -> [Double]{
+        let p1 = (length + d1 + d2) / 2.0
+        let s1 = sqrt(p1 * (p1 - d1) * (p1 - d2) * (p1 - length))
+        let h1 = (2.0 * s1) / length
+        let y = sqrt(d2 * d2 - h1 * h1)
 
-        let p2 = (width + b + c) / 2.0
-        let s2 = sqrt(p2 * (p2 - b) * (p2 - c) * (p2 - width))
-        let h2 = 2.0 * s2 / width
-        let x = sqrt(c * c - h2 * h2)
-        print("p2:\(p2) s2:\(s2) h2:\(h2) x:\(x)")
+        let p2 = (width + d1 + d3) / 2.0
+        let s2 = sqrt(p2 * (p2 - d1) * (p2 - d3) * (p2 - width))
+        let h2 = (2.0 * s2) / width
+        let x = sqrt(d1 * d1 - h2 * h2)
+
         return [x, y]
     }
 }
